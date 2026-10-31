@@ -1,7 +1,16 @@
-// Simple auth using localStorage (demo). Replace with real backend later.
+// Auth with basic password hashing (demo-level security improvement)
 
 const AUTH_KEY = "le_text_user";
 const USERS_KEY = "le_text_users";
+
+// Simple hash for demo (not crypto-secure production, but better than plain text)
+async function hashPassword(password) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + "le_text_salt_v1");
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+}
 
 function getCurrentUser() {
   try {
@@ -33,22 +42,28 @@ function saveUsers(users) {
   localStorage.setItem(USERS_KEY, JSON.stringify(users));
 }
 
-function register(username, password) {
+async function register(username, password) {
   const users = getUsers();
   const clean = username.trim().toLowerCase();
+
   if (!clean || clean.length < 3) {
     return { ok: false, error: "Username must be at least 3 characters" };
   }
-  if (password.length < 4) {
-    return { ok: false, error: "Password must be at least 4 characters" };
+  if (!/^[a-z0-9_]+$/.test(clean)) {
+    return { ok: false, error: "Username can only contain letters, numbers and underscore" };
+  }
+  if (password.length < 6) {
+    return { ok: false, error: "Password must be at least 6 characters" };
   }
   if (users.some(u => u.username === clean)) {
     return { ok: false, error: "Username already taken" };
   }
+
+  const passwordHash = await hashPassword(password);
   const user = {
     userId: "u_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8),
     username: clean,
-    password: password,
+    passwordHash,
     createdAt: new Date().toISOString()
   };
   users.push(user);
@@ -57,13 +72,30 @@ function register(username, password) {
   return { ok: true, user };
 }
 
-function login(username, password) {
+async function login(username, password) {
   const users = getUsers();
   const clean = username.trim().toLowerCase();
-  const found = users.find(u => u.username === clean && u.password === password);
+  const passwordHash = await hashPassword(password);
+
+  // Support both old plain-text and new hashed users
+  const found = users.find(u => {
+    if (u.username !== clean) return false;
+    if (u.passwordHash) return u.passwordHash === passwordHash;
+    if (u.password) return u.password === password; // legacy
+    return false;
+  });
+
   if (!found) {
     return { ok: false, error: "Invalid username or password" };
   }
+
+  // Upgrade legacy user to hashed if needed
+  if (found.password && !found.passwordHash) {
+    found.passwordHash = passwordHash;
+    delete found.password;
+    saveUsers(users);
+  }
+
   setCurrentUser({ userId: found.userId, username: found.username });
   return { ok: true, user: found };
 }
@@ -72,7 +104,7 @@ function logout() {
   setCurrentUser(null);
 }
 
-function requireAuth(redirectTo = "start.html") {
+function requireAuth(redirectTo = "/start") {
   const user = getCurrentUser();
   if (!user) {
     window.location.href = redirectTo;
@@ -81,7 +113,7 @@ function requireAuth(redirectTo = "start.html") {
   return user;
 }
 
-function redirectIfLoggedIn(target = "dashboard.html") {
+function redirectIfLoggedIn(target = "/dashboard") {
   if (getCurrentUser()) {
     window.location.href = target;
   }
