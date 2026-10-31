@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LE TEXT PAGES</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="topbar-brand" href="main.html">LE TEXT PAGES</a>
+    <div class="topbar-search">
+      <span class="search-icon">🔍</span>
+      <input type="search" id="searchInput" placeholder="Search pages..." />
+    </div>
+    <div class="topbar-actions">
+      <button class="btn-plus" id="plusBtn" title="Menu">+</button>
+      <button class="account-btn" id="accountBtn">Start</button>
+    </div>
+  </header>
+
+  <!-- Plus menu (disabled for guests) -->
+  <div class="plus-menu" id="plusMenu">
+    <div class="plus-menu-header">
+      <span>×</span>
+      <button class="plus-menu-close" id="plusClose">×</button>
+    </div>
+    <div class="plus-menu-user" id="menuUser">Guest</div>
+    <a href="#" id="menuCreate" class="menu-item">Create</a>
+    <a href="#" id="menuPages" class="menu-item">Pages</a>
+    <a href="#" id="menuSettings" class="menu-item">Settings</a>
+  </div>
+
+  <main class="page-container">
+    <div class="page-list" id="pageList">
+      <!-- cards injected -->
+    </div>
+    <div class="empty-state hidden" id="emptyState">
+      No public text pages yet.
+    </div>
+  </main>
+
+  <script src="js/auth.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    // If logged in → always go to Dashboard
+    if (getCurrentUser()) {
+      const view = getQueryParam("view");
+      const comment = getQueryParam("comment");
+      let url = "dashboard.html";
+      if (view) {
+        url += "?view=" + encodeURIComponent(view);
+        if (comment) url += "&comment=" + encodeURIComponent(comment);
+      }
+      window.location.replace(url);
+    }
+
+    setupTopbar({ isDashboard: false });
+
+    function renderList(filter = "") {
+      const list = document.getElementById("pageList");
+      const empty = document.getElementById("emptyState");
+      let pages = getPublicPages();
+      if (filter) {
+        const q = filter.toLowerCase();
+        pages = pages.filter(p =>
+          (p.title || "").toLowerCase().includes(q) ||
+          (p.username || "").toLowerCase().includes(q) ||
+          (p.content || "").toLowerCase().includes(q)
+        );
+      }
+      if (pages.length === 0) {
+        list.innerHTML = "";
+        empty.classList.remove("hidden");
+      } else {
+        empty.classList.add("hidden");
+        list.innerHTML = pages.map(p => renderTextCard(p, "main.html")).join("");
+      }
+    }
+
+    renderList();
+
+    document.getElementById("searchInput").addEventListener("input", (e) => {
+      renderList(e.target.value.trim());
+    });
+
+    // Handle ?view=textid
+    const viewId = getQueryParam("view");
+    if (viewId) {
+      window.location.href = "view.html?id=" + encodeURIComponent(viewId) + "&from=main";
+    }
+  </script>
+</body>
+</html>

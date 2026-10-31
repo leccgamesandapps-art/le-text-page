@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Start · LE TEXT PAGE</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="start-page">
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login">Login</button>
+        <button class="auth-tab" data-tab="register">Register</button>
+      </div>
+      <div class="auth-body">
+        <div id="authError" class="auth-error"></div>
+
+        <!-- Login form -->
+        <form id="loginForm">
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="loginUser" required autocomplete="username" />
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="loginPass" required autocomplete="current-password" />
+          </div>
+          <button type="submit" class="auth-submit">Login</button>
+        </form>
+
+        <!-- Register form -->
+        <form id="registerForm" class="hidden">
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="regUser" required minlength="3" autocomplete="username" />
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="regPass" required minlength="4" autocomplete="new-password" />
+          </div>
+          <button type="submit" class="auth-submit">Register</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/auth.js"></script>
+  <script>
+    // Redirect if already logged in
+    redirectIfLoggedIn("dashboard.html");
+
+    const tabs = document.querySelectorAll(".auth-tab");
+    const loginForm = document.getElementById("loginForm");
+    const registerForm = document.getElementById("registerForm");
+    const errorEl = document.getElementById("authError");
+
+    tabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        tabs.forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        errorEl.style.display = "none";
+        if (tab.dataset.tab === "login") {
+          loginForm.classList.remove("hidden");
+          registerForm.classList.add("hidden");
+        } else {
+          loginForm.classList.add("hidden");
+          registerForm.classList.remove("hidden");
+        }
+      });
+    });
+
+    loginForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const res = login(
+        document.getElementById("loginUser").value,
+        document.getElementById("loginPass").value
+      );
+      if (res.ok) {
+        window.location.href = "dashboard.html";
+      } else {
+        errorEl.textContent = res.error;
+        errorEl.style.display = "block";
+      }
+    });
+
+    registerForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const res = register(
+        document.getElementById("regUser").value,
+        document.getElementById("regPass").value
+      );
+      if (res.ok) {
+        window.location.href = "dashboard.html";
+      } else {
+        errorEl.textContent = res.error;
+        errorEl.style.display = "block";
+      }
+    });
+  </script>
+</body>
+</html>
