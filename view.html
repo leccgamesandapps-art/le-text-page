@@ -27,14 +27,14 @@
     const textId = getQueryParam("id") || getQueryParam("view");
     const wantComment = getQueryParam("comment");
 
-    document.getElementById("backLink").href = from === "dashboard" ? "dashboard.html" : "main.html";
+    document.getElementById("backLink").href = from === "dashboard" ? "/dashboard" : "/main";
     const accountBtn = document.getElementById("accountBtn");
     if (user) {
       accountBtn.textContent = user.username;
-      accountBtn.onclick = () => location.href = "dashboard.html";
+      accountBtn.onclick = () => location.href = "/dashboard";
     } else {
       accountBtn.textContent = "Start";
-      accountBtn.onclick = () => location.href = "start.html";
+      accountBtn.onclick = () => location.href = "/start";
     }
 
     if (!textId) {
@@ -101,6 +101,12 @@
             by ${escapeHtml(page.username)} · ${formatDate(page.createdAt)}
             ${page.likes && page.likes.length ? ` · ${page.likes.length} likes` : ""}
           </div>
+          <div style="margin-top:0.75rem">
+            <button class="btn btn-secondary" id="copyShareBtn" style="padding:0.45rem 1rem;font-size:0.9rem">
+              Copy Share Link
+            </button>
+            <span id="copyStatus" style="margin-left:0.5rem;font-size:0.85rem;color:var(--success);display:none">Copied!</span>
+          </div>
         </div>
         <div class="view-content">${escapeHtml(page.content)}</div>
         ${renderAttachments(page.files)}
@@ -118,7 +124,7 @@
             </div>
           ` : `
             <p style="color:var(--text-muted);margin-bottom:1rem">
-              <a href="start.html">Login / Register</a> to comment.
+              <a href="/start">Login / Register</a> to comment.
             </p>
           `}
           <div class="comment-list" id="commentList">${renderComments()}</div>
@@ -167,6 +173,28 @@
           document.getElementById("replyTo").value = "";
           fileInput.value = "";
           paint();
+        };
+      }
+
+      // Copy Share Link
+      const copyBtn = document.getElementById("copyShareBtn");
+      if (copyBtn) {
+        copyBtn.onclick = () => {
+          let shortId = textId;
+          if (textId.startsWith("t_")) {
+            const parts = textId.split("_");
+            if (parts.length >= 2) shortId = parts[1];
+          }
+          const shareUrl = window.location.origin + "/share?id=" + encodeURIComponent(shortId);
+          navigator.clipboard.writeText(shareUrl).then(() => {
+            const status = document.getElementById("copyStatus");
+            if (status) {
+              status.style.display = "inline";
+              setTimeout(() => status.style.display = "none", 2000);
+            }
+          }).catch(() => {
+            prompt("Copy this link:", shareUrl);
+          });
         };
       }
 
