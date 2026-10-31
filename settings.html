@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings · LE TEXT PAGE</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="topbar-brand" href="dashboard.html">LE TEXT PAGES</a>
+    <div class="topbar-actions" style="margin-left:auto">
+      <button class="account-btn" id="accountBtn">Account</button>
+    </div>
+  </header>
+
+  <main class="settings-page">
+    <h1>Settings</h1>
+    <div class="settings-card">
+      <h3>Account</h3>
+      <p id="userInfo">—</p>
+      <button class="logout-btn" id="logoutBtn">Log out</button>
+    </div>
+    <div class="settings-card">
+      <h3>About this demo</h3>
+      <p style="color:var(--text-muted);font-size:0.9rem">
+        This version uses localStorage for Users, TextPages and Comments.
+        For production on Vercel, replace with Supabase (Auth + Postgres) + Vercel Blob for files.
+      </p>
+    </div>
+  </main>
+
+  <script src="js/auth.js"></script>
+  <script>
+    const user = requireAuth("start.html");
+    if (!user) throw new Error("not authed");
+    document.getElementById("accountBtn").textContent = user.username;
+    document.getElementById("userInfo").textContent =
+      `Username: ${user.username}  ·  ID: ${user.userId}`;
+
+    document.getElementById("logoutBtn").onclick = () => {
+      logout();
+      window.location.href = "index.html";
+    };
+  </script>
+</body>
+</html>
