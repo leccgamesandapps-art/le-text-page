@@ -1,0 +1,14 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/share", "destination": "/share.html" },
+    { "source": "/view", "destination": "/view.html" },
+    { "source": "/start", "destination": "/start.html" },
+    { "source": "/main", "destination": "/main.html" },
+    { "source": "/dashboard", "destination": "/dashboard.html" },
+    { "source": "/create", "destination": "/create.html" },
+    { "source": "/pages", "destination": "/pages.html" },
+    { "source": "/settings", "destination": "/settings.html" }
+  ]
+}

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Share · LE TEXT PAGE</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <main class="view-page">
+    <div class="empty-state" id="status">Opening shared text...</div>
+  </main>
+
+  <script src="js/data.js"></script>
+  <script>
+    // Supports: /share?id=1793433093214
+    // Also supports full textId: /share?id=t_1793433093214_nuz0v
+
+    const params = new URLSearchParams(window.location.search);
+    let id = params.get("id") || params.get("sharetextpageslink");
+
+    if (!id) {
+      document.getElementById("status").textContent = "No share ID provided.";
+    } else {
+      // If the user only gave the number part, try to find the full textId
+      let textId = id;
+
+      if (!id.startsWith("t_")) {
+        // Search for a page whose textId contains this number
+        const pages = getPages();
+        const found = pages.find(p => p.textId.includes(id));
+        if (found) {
+          textId = found.textId;
+        } else {
+          // Fallback: try common pattern
+          textId = "t_" + id;
+        }
+      }
+
+      // Redirect to clean view URL
+      window.location.replace("/view?id=" + encodeURIComponent(textId) + "&from=share");
+    }
+  </script>
+</body>
+</html>
